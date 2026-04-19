@@ -21,6 +21,7 @@
     "strictBindCallApply": true,
     "noFallthroughCasesInSwitch": false,
     "forceConsistentCasingInFileNames": true,
+    "types": ["jest", "node"],
     "paths": {
       "@modules/*": ["./src/modules/*"],
       "@shared/*": ["./src/shared/*"],
