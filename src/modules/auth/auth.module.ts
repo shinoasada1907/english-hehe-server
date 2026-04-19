@@ -11,6 +11,8 @@ import { RegisterUseCase } from './application/use-cases/register.use-case';
 import { LoginUseCase } from './application/use-cases/login.use-case';
 import { RefreshTokenUseCase } from './application/use-cases/refresh-token.use-case';
 import { GetProfileUseCase } from './application/use-cases/get-profile.use-case';
+import { GoogleStrategy } from './infrastructure/strategies/google.strategy';
+import { GoogleLoginUseCase } from './application/use-cases/google-login.use-case';
 import { AuthController } from './presentation/auth.controller';
 import { AUTH_REPOSITORY } from './domain/auth.repository.interface';
 
@@ -31,11 +33,13 @@ import { AUTH_REPOSITORY } from './domain/auth.repository.interface';
   providers: [
     { provide: AUTH_REPOSITORY, useClass: AuthRepository },
     JwtStrategy,
+    GoogleStrategy,
     RegisterUseCase,
     LoginUseCase,
     RefreshTokenUseCase,
     GetProfileUseCase,
+    GoogleLoginUseCase,
   ],
-  exports: [JwtStrategy, PassportModule],
+  exports: [JwtStrategy, PassportModule, AUTH_REPOSITORY],
 })
 export class AuthModule {}
