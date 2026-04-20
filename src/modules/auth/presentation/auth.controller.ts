@@ -1,4 +1,14 @@
-import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  UseGuards,
+  Optional,
+  HttpCode,
+  HttpStatus,
+  HttpException,
+} from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse } from '@nestjs/swagger';
 import { RegisterUseCase } from '../application/use-cases/register.use-case';
@@ -21,7 +31,7 @@ export class AuthController {
     private readonly loginUseCase: LoginUseCase,
     private readonly refreshTokenUseCase: RefreshTokenUseCase,
     private readonly getProfileUseCase: GetProfileUseCase,
-    private readonly googleLoginUseCase: GoogleLoginUseCase,
+    @Optional() private readonly googleLoginUseCase?: GoogleLoginUseCase,
   ) {}
 
   @ApiOperation({ summary: 'Đăng ký tài khoản email/password' })
@@ -55,12 +65,25 @@ export class AuthController {
   @ApiOperation({ summary: 'Bắt đầu đăng nhập Google OAuth' })
   @Get('google')
   @UseGuards(AuthGuard('google'))
-  googleLogin() {}
+  googleLogin() {
+    if (!this.googleLoginUseCase) {
+      throw new HttpException(
+        'Google OAuth is not configured',
+        HttpStatus.NOT_IMPLEMENTED,
+      );
+    }
+  }
 
   @ApiOperation({ summary: 'Google OAuth callback — trả về JWT tokens' })
   @Get('google/callback')
   @UseGuards(AuthGuard('google'))
   googleCallback(@CurrentUser() user: User) {
+    if (!this.googleLoginUseCase) {
+      throw new HttpException(
+        'Google OAuth is not configured',
+        HttpStatus.NOT_IMPLEMENTED,
+      );
+    }
     return this.googleLoginUseCase.execute(user);
   }
 }

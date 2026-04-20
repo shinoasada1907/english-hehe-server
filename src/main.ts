@@ -1,12 +1,19 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import helmet from 'helmet';
+import compression from 'compression';
 import { AppModule } from './app.module';
 import { ResponseInterceptor } from '@shared/presentation/interceptors/response.interceptor';
 import { HttpExceptionFilter } from '@shared/presentation/filters/http-exception.filter';
 
 async function bootstrap(): Promise<void> {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, {
+    logger: ['error', 'warn', 'log'],
+  });
+
+  app.use(helmet());
+  app.use(compression());
 
   app.setGlobalPrefix('api');
 
@@ -22,7 +29,11 @@ async function bootstrap(): Promise<void> {
   app.useGlobalFilters(new HttpExceptionFilter());
 
   app.enableCors({
-    origin: process.env.NODE_ENV === 'production' ? false : '*',
+    origin: process.env.ALLOWED_ORIGINS
+      ? process.env.ALLOWED_ORIGINS.split(',')
+      : process.env.NODE_ENV === 'production'
+        ? false
+        : '*',
     credentials: true,
   });
 

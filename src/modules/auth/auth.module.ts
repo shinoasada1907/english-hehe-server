@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, Provider, Logger } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
@@ -15,6 +15,17 @@ import { GoogleStrategy } from './infrastructure/strategies/google.strategy';
 import { GoogleLoginUseCase } from './application/use-cases/google-login.use-case';
 import { AuthController } from './presentation/auth.controller';
 import { AUTH_REPOSITORY } from './domain/auth.repository.interface';
+
+// Only register GoogleStrategy when GOOGLE_CLIENT_ID is configured
+const googleProviders: Provider[] = process.env.GOOGLE_CLIENT_ID
+  ? [GoogleStrategy, GoogleLoginUseCase]
+  : [];
+
+if (!process.env.GOOGLE_CLIENT_ID) {
+  new Logger('AuthModule').warn(
+    'GOOGLE_CLIENT_ID is not set — Google OAuth is disabled',
+  );
+}
 
 @Module({
   imports: [
@@ -33,12 +44,11 @@ import { AUTH_REPOSITORY } from './domain/auth.repository.interface';
   providers: [
     { provide: AUTH_REPOSITORY, useClass: AuthRepository },
     JwtStrategy,
-    GoogleStrategy,
+    ...googleProviders,
     RegisterUseCase,
     LoginUseCase,
     RefreshTokenUseCase,
     GetProfileUseCase,
-    GoogleLoginUseCase,
   ],
   exports: [JwtStrategy, PassportModule, AUTH_REPOSITORY],
 })
